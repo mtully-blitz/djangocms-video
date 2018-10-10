@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('filer', '0002_auto_20150606_2003'),
-        ('djangocms_video', '0004_move_to_attributes'),
+        ('djangocms_video', '0004_2_remove_stale_columns'),
     ]
 
     operations = [

@@ -1,100 +1,35 @@
 # -*- coding: utf-8 -*-
+
+'''
+WARNING: This is a fix for original migration 0004[1] (failing in some old versions of postgresql[2]).
+Fix was added way after 0004 was created (at writing time we are on migration 0009), and is based on a similar django CMS issue[3].
+
+[1] https://github.com/divio/djangocms-video/blob/2.0.4/djangocms_video/migrations/0004_move_to_attributes.py
+[2] https://github.com/divio/djangocms-video/issues/34
+[3] https://github.com/divio/django-cms/pull/6322
+'''
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import json
 
-
-def migrate_to_attributes(apps, schema_editor):
-    VideoPlayer = apps.get_model('djangocms_video', 'VideoPlayer')
-    attrs = {}
-
-    mapping = {
-        'width': 'width',
-        'height': 'height',
-        'data-auto_play': 'auto_play',
-        'data-auto_hide': 'auto_hide',
-        'data-fullscreen': 'fullscreen',
-        'data-loop': 'loop',
-        'data-bgcolor': 'bgcolor',
-        'data-textcolor': 'textcolor',
-        'data-seekbarcolor': 'seekbarcolor',
-        'data-seekbarbgcolor': 'seekbarbgcolor',
-        'data-loadingbarcolor': 'loadingbarcolor',
-        'data-buttonovercolor': 'buttonovercolor',
-        'data-buttonhighlightcolor': 'buttonhighlightcolor',
-    }
-
-    for plugin in VideoPlayer.objects.all():
-        for new, old in mapping.items():
-            attrs[new] = str(getattr(plugin, old)).strip()
-        # needs to be stored as dict to the database
-        plugin.attributes = attrs
-        plugin.save()
+try:
+    IrreversibleError = migrations.Migration.IrreversibleError
+except AttributeError:
+    from django.db.migrations.exceptions import IrreversibleError
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('djangocms_video', '0003_field_adaptions'),
     ]
 
     operations = [
-        migrations.RunPython(migrate_to_attributes),
-        migrations.RemoveField(
+        migrations.AddField(
             model_name='videoplayer',
-            name='auto_hide',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='auto_play',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='bgcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='buttonhighlightcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='buttonoutcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='buttonovercolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='fullscreen',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='height',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='loadingbarcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='loop',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='seekbarbgcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='seekbarcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='textcolor',
-        ),
-        migrations.RemoveField(
-            model_name='videoplayer',
-            name='width',
+            name='migration_0004_control',
+            field=models.PositiveIntegerField(null=True),
         ),
     ]
+
+    def unapply(self, project_state, schema_editor, collect_sql=False):
+        raise IrreversibleError('Migration %s is not reversible' % self.name)
