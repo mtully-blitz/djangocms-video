@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from django.utils.translation import ugettext_lazy as _
-
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
+from django.utils.translation import ugettext_lazy as _
 
-from . import models, forms
+from . import forms, models
 
 
 class VideoPlayerPlugin(CMSPluginBase):
@@ -26,6 +25,7 @@ class VideoPlayerPlugin(CMSPluginBase):
             'classes': ('collapse',),
             'fields': (
                 'embed_link',
+                'parameters',
             )
         }),
         (_('Advanced settings'), {
@@ -70,7 +70,7 @@ class VideoSourcePlugin(CMSPluginBase):
     ]
 
     def get_render_template(self, context, instance, placeholder):
-        return 'djangocms_video/{}/source.html'.format(context['video_template'])
+        return 'djangocms_video/{}/source.html'.format(context.get('video_template', 'default'))
 
 
 class VideoTrackPlugin(CMSPluginBase):
@@ -98,7 +98,7 @@ class VideoTrackPlugin(CMSPluginBase):
     ]
 
     def get_render_template(self, context, instance, placeholder):
-        return 'djangocms_video/{}/track.html'.format(context['video_template'])
+        return 'djangocms_video/{}/track.html'.format(context.get('video_template', 'default'))
 
 
 plugin_pool.register_plugin(VideoPlayerPlugin)
